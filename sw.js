@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mss-tracker-v1';
+const CACHE_NAME = 'mss-tracker-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -13,7 +13,9 @@ const ASSETS = [
 // Install - cache assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(ASSETS))
+      .catch((err) => console.warn('SW cache addAll failed:', err))
   );
   self.skipWaiting();
 });
@@ -30,27 +32,45 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch - cache first, network fallback
+// Fetch - network first for navigation, cache first for assets
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET and cross-origin requests
   if (event.request.method !== 'GET') return;
 
+  // Skip chrome-extension and other non-http(s) requests
+  if (!event.request.url.startsWith('http')) return;
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    (async () => {
+      // For navigation requests, try network first
+      if (event.request.mode === 'navigate') {
+        try {
+          const response = await fetch(event.request);
+          if (response.ok) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(event.request, response.clone());
+            return response;
+          }
+        } catch (e) { /* network failed, fall through to cache */ }
+        const cached = await caches.match(event.request);
+        return cached || caches.match('./index.html');
+      }
+
+      // For other requests, try cache first
+      const cached = await caches.match(event.request);
       if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        // Cache successful same-origin responses
+
+      try {
+        const response = await fetch(event.request);
+        // Only cache same-origin successful responses
         if (response.ok && event.request.url.startsWith(self.location.origin)) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(event.request, response.clone());
         }
         return response;
-      });
-    }).catch(() => {
-      // Offline fallback for navigation
-      if (event.request.mode === 'navigate') {
-        return caches.match('./index.html');
+      } catch (e) {
+        // Return a basic offline response for failed requests
+        return new Response('Offline', { status: 503, statusText: 'Offline' });
       }
-    })
+    })()
   );
 });
