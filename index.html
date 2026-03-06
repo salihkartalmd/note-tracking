@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>MSS Ders Takip</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Animated background -->
+  <div class="bg-animation">
+    <div class="neuron-network" id="neuronCanvas"></div>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+  </div>
+
+  <!-- App container -->
+  <div class="app">
+    <!-- Header -->
+    <header class="header glass-panel">
+      <div class="header-content">
+        <div class="header-icon" id="headerIcon">🧠</div>
+        <div class="header-text">
+          <h1 id="headerTitle">Merkezi Sinir Sistemi</h1>
+          <p id="headerSubtitle">Komite Ders Takip</p>
+        </div>
+      </div>
+      <div class="header-progress" id="headerProgress">
+        <div class="mini-progress-bar">
+          <div class="mini-progress-fill" id="headerProgressFill"></div>
+        </div>
+        <span class="mini-progress-text" id="headerProgressText">0%</span>
+      </div>
+    </header>
+
+    <!-- Pages -->
+    <main class="pages-container">
+      <!-- Statistics Page -->
+      <section class="page" id="page-stats" data-page="stats">
+        <div class="page-scroll">
+          <div class="stats-hero glass-panel">
+            <div class="stats-brain">
+              <svg viewBox="0 0 120 120" class="circular-progress" id="mainCircularProgress">
+                <circle cx="60" cy="60" r="54" class="progress-bg"></circle>
+                <circle cx="60" cy="60" r="54" class="progress-fill" id="mainProgressCircle"></circle>
+              </svg>
+              <div class="stats-percentage" id="totalPercentage">0%</div>
+            </div>
+            <div class="stats-summary">
+              <h2>Genel İlerleme</h2>
+              <p id="totalCompleted">0 / 101 not tamamlandı</p>
+            </div>
+          </div>
+
+          <div class="stats-grid" id="statsGrid"></div>
+
+          <div class="study-streak glass-panel">
+            <h3>Çalışma Özeti</h3>
+            <div class="streak-stats">
+              <div class="streak-item">
+                <span class="streak-value" id="totalNotes">101</span>
+                <span class="streak-label">Toplam Not</span>
+              </div>
+              <div class="streak-item">
+                <span class="streak-value" id="completedNotes">0</span>
+                <span class="streak-label">Tamamlanan</span>
+              </div>
+              <div class="streak-item">
+                <span class="streak-value" id="remainingNotes">101</span>
+                <span class="streak-label">Kalan</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="reset-btn glass-panel" id="resetBtn">
+            <span class="reset-icon">↺</span>
+            Tüm İlerlemeyi Sıfırla
+          </button>
+        </div>
+      </section>
+
+      <!-- Anatomi Page -->
+      <section class="page" id="page-anatomi" data-page="anatomi">
+        <div class="page-scroll">
+          <div class="course-header glass-panel course-anatomi">
+            <div class="course-header-info">
+              <span class="course-icon">🦴</span>
+              <div>
+                <h2>Anatomi</h2>
+                <p class="course-progress-text" id="anatomi-progress-text">0 / 46</p>
+              </div>
+            </div>
+            <div class="course-progress-bar">
+              <div class="course-progress-fill anatomi-fill" id="anatomi-progress-fill"></div>
+            </div>
+          </div>
+          <div class="notes-grid" id="anatomi-grid"></div>
+        </div>
+      </section>
+
+      <!-- Fizyoloji Page -->
+      <section class="page" id="page-fizyoloji" data-page="fizyoloji">
+        <div class="page-scroll">
+          <div class="course-header glass-panel course-fizyoloji">
+            <div class="course-header-info">
+              <span class="course-icon">⚡</span>
+              <div>
+                <h2>Fizyoloji</h2>
+                <p class="course-progress-text" id="fizyoloji-progress-text">0 / 33</p>
+              </div>
+            </div>
+            <div class="course-progress-bar">
+              <div class="course-progress-fill fizyoloji-fill" id="fizyoloji-progress-fill"></div>
+            </div>
+          </div>
+          <div class="notes-grid" id="fizyoloji-grid"></div>
+        </div>
+      </section>
+
+      <!-- Histoloji Page -->
+      <section class="page" id="page-histoloji" data-page="histoloji">
+        <div class="page-scroll">
+          <div class="course-header glass-panel course-histoloji">
+            <div class="course-header-info">
+              <span class="course-icon">🔬</span>
+              <div>
+                <h2>Histoloji ve Embriyoloji</h2>
+                <p class="course-progress-text" id="histoloji-progress-text">0 / 11</p>
+              </div>
+            </div>
+            <div class="course-progress-bar">
+              <div class="course-progress-fill histoloji-fill" id="histoloji-progress-fill"></div>
+            </div>
+          </div>
+          <div class="notes-grid" id="histoloji-grid"></div>
+        </div>
+      </section>
+
+      <!-- Biyofizik Page -->
+      <section class="page" id="page-biyofizik" data-page="biyofizik">
+        <div class="page-scroll">
+          <div class="course-header glass-panel course-biyofizik">
+            <div class="course-header-info">
+              <span class="course-icon">🧬</span>
+              <div>
+                <h2>Biyofizik</h2>
+                <p class="course-progress-text" id="biyofizik-progress-text">0 / 11</p>
+              </div>
+            </div>
+            <div class="course-progress-bar">
+              <div class="course-progress-fill biyofizik-fill" id="biyofizik-progress-fill"></div>
+            </div>
+          </div>
+          <div class="notes-grid" id="biyofizik-grid"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav glass-panel">
+      <button class="nav-btn active" data-target="stats" aria-label="İstatistikler">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 20V10M12 20V4M6 20v-6"/>
+        </svg>
+        <span>İstatistik</span>
+      </button>
+      <button class="nav-btn" data-target="anatomi" aria-label="Anatomi">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="8" r="4"/><path d="M12 12v8M8 16h8"/>
+        </svg>
+        <span>Anatomi</span>
+      </button>
+      <button class="nav-btn" data-target="fizyoloji" aria-label="Fizyoloji">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        <span>Fizyoloji</span>
+      </button>
+      <button class="nav-btn" data-target="histoloji" aria-label="Histoloji">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/>
+        </svg>
+        <span>Histoloji</span>
+      </button>
+      <button class="nav-btn" data-target="biyofizik" aria-label="Biyofizik">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v6m0 8v6M4.93 4.93l4.24 4.24m5.66 5.66l4.24 4.24M2 12h6m8 0h6M4.93 19.07l4.24-4.24m5.66-5.66l4.24-4.24"/>
+        </svg>
+        <span>Biyofizik</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

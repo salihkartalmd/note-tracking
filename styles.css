@@ -1,0 +1,861 @@
+/* ===== CSS Variables & Reset ===== */
+:root {
+  --bg-primary: #0a0a1a;
+  --bg-secondary: #0f0f2a;
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --text-primary: #e8e8f0;
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-muted: rgba(255, 255, 255, 0.3);
+
+  /* Course colors - neuroscience inspired */
+  --anatomi: #ff6b8a;
+  --anatomi-glow: rgba(255, 107, 138, 0.3);
+  --anatomi-surface: rgba(255, 107, 138, 0.08);
+  --anatomi-border: rgba(255, 107, 138, 0.15);
+
+  --fizyoloji: #4ecdc4;
+  --fizyoloji-glow: rgba(78, 205, 196, 0.3);
+  --fizyoloji-surface: rgba(78, 205, 196, 0.08);
+  --fizyoloji-border: rgba(78, 205, 196, 0.15);
+
+  --histoloji: #a78bfa;
+  --histoloji-glow: rgba(167, 139, 250, 0.3);
+  --histoloji-surface: rgba(167, 139, 250, 0.08);
+  --histoloji-border: rgba(167, 139, 250, 0.15);
+
+  --biyofizik: #fbbf24;
+  --biyofizik-glow: rgba(251, 191, 36, 0.3);
+  --biyofizik-surface: rgba(251, 191, 36, 0.08);
+  --biyofizik-border: rgba(251, 191, 36, 0.15);
+
+  /* Glass properties */
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --glass-blur: 20px;
+
+  --nav-height: 80px;
+  --header-height: 80px;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ===== Animated Background ===== */
+.bg-animation {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.neuron-network {
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+}
+
+.gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  animation: float 20s ease-in-out infinite;
+}
+
+.orb-1 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, var(--anatomi) 0%, transparent 70%);
+  top: -100px;
+  right: -50px;
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, var(--fizyoloji) 0%, transparent 70%);
+  bottom: 20%;
+  left: -80px;
+  animation-delay: -7s;
+}
+
+.orb-3 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, var(--histoloji) 0%, transparent 70%);
+  top: 40%;
+  right: -60px;
+  animation-delay: -14s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -40px) scale(1.1); }
+  50% { transform: translate(-20px, 20px) scale(0.95); }
+  75% { transform: translate(15px, 30px) scale(1.05); }
+}
+
+/* ===== Glass Panel ===== */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* ===== App Layout ===== */
+.app {
+  position: relative;
+  z-index: 1;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Header ===== */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  min-height: var(--header-height);
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-icon {
+  font-size: 28px;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(167, 139, 250, 0.3)); }
+  50% { filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.6)); }
+}
+
+.header-text h1 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  background: linear-gradient(135deg, #e8e8f0 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-text p {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.header-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-progress-bar {
+  width: 60px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mini-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--histoloji), var(--fizyoloji));
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 0%;
+}
+
+.mini-progress-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 32px;
+  text-align: right;
+}
+
+/* ===== Pages Container ===== */
+.pages-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.page {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: translateY(8px);
+}
+
+.page.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.page-scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: 16px;
+  padding-bottom: calc(16px + var(--nav-height) + var(--safe-area-bottom));
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.page-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== Statistics Page ===== */
+.stats-hero {
+  border-radius: 20px;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.08), rgba(78, 205, 196, 0.05));
+  pointer-events: none;
+}
+
+.stats-brain {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+}
+
+.circular-progress {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progress-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 6;
+}
+
+.progress-fill {
+  fill: none;
+  stroke: url(#progressGradient);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 339.29;
+  stroke-dashoffset: 339.29;
+  transition: stroke-dashoffset 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stats-percentage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--histoloji), var(--fizyoloji));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stats-summary h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.stats-summary p {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  border-radius: 16px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:active {
+  transform: scale(0.97);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.stat-card.anatomi-card::before { background: var(--anatomi); }
+.stat-card.fizyoloji-card::before { background: var(--fizyoloji); }
+.stat-card.histoloji-card::before { background: var(--histoloji); }
+.stat-card.biyofizik-card::before { background: var(--biyofizik); }
+
+.stat-card-icon {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.stat-card-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.stat-card-progress {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.stat-card.anatomi-card .stat-card-progress { color: var(--anatomi); }
+.stat-card.fizyoloji-card .stat-card-progress { color: var(--fizyoloji); }
+.stat-card.histoloji-card .stat-card-progress { color: var(--histoloji); }
+.stat-card.biyofizik-card .stat-card-progress { color: var(--biyofizik); }
+
+.stat-card-bar {
+  margin-top: 10px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.stat-card-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.anatomi-card .stat-card-bar-fill { background: var(--anatomi); }
+.fizyoloji-card .stat-card-bar-fill { background: var(--fizyoloji); }
+.histoloji-card .stat-card-bar-fill { background: var(--histoloji); }
+.biyofizik-card .stat-card-bar-fill { background: var(--biyofizik); }
+
+/* Study streak */
+.study-streak {
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.study-streak h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+}
+
+.streak-stats {
+  display: flex;
+  justify-content: space-around;
+}
+
+.streak-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.streak-value {
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--text-primary), var(--histoloji));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.streak-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Reset button */
+.reset-btn {
+  width: 100%;
+  border-radius: 14px;
+  padding: 14px;
+  border: 1px solid rgba(255, 80, 80, 0.15);
+  background: rgba(255, 80, 80, 0.06);
+  color: #ff6b6b;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.reset-btn:active {
+  transform: scale(0.97);
+  background: rgba(255, 80, 80, 0.12);
+}
+
+.reset-icon {
+  font-size: 18px;
+}
+
+/* ===== Course Pages ===== */
+.course-header {
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.course-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.course-anatomi::before { background: linear-gradient(135deg, var(--anatomi-surface), transparent); }
+.course-fizyoloji::before { background: linear-gradient(135deg, var(--fizyoloji-surface), transparent); }
+.course-histoloji::before { background: linear-gradient(135deg, var(--histoloji-surface), transparent); }
+.course-biyofizik::before { background: linear-gradient(135deg, var(--biyofizik-surface), transparent); }
+
+.course-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.course-icon {
+  font-size: 32px;
+}
+
+.course-header-info h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.course-progress-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.course-progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.course-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 0%;
+}
+
+.anatomi-fill { background: linear-gradient(90deg, var(--anatomi), #ff8fa8); }
+.fizyoloji-fill { background: linear-gradient(90deg, var(--fizyoloji), #7eddd6); }
+.histoloji-fill { background: linear-gradient(90deg, var(--histoloji), #c4b5fd); }
+.biyofizik-fill { background: linear-gradient(90deg, var(--biyofizik), #fcd34d); }
+
+/* ===== Notes Grid ===== */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 10px;
+}
+
+.note-card {
+  aspect-ratio: 1;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.note-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.note-card:active {
+  transform: scale(0.92);
+}
+
+/* Unchecked hover states */
+.note-card:not(.checked):hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Checked states per course */
+.note-card.checked {
+  color: #fff;
+}
+
+.note-card.checked .note-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.note-card.checked.anatomi-note {
+  background: var(--anatomi-surface);
+  border-color: var(--anatomi-border);
+  color: var(--anatomi);
+  box-shadow: 0 0 20px var(--anatomi-glow), inset 0 0 20px rgba(255, 107, 138, 0.05);
+}
+
+.note-card.checked.fizyoloji-note {
+  background: var(--fizyoloji-surface);
+  border-color: var(--fizyoloji-border);
+  color: var(--fizyoloji);
+  box-shadow: 0 0 20px var(--fizyoloji-glow), inset 0 0 20px rgba(78, 205, 196, 0.05);
+}
+
+.note-card.checked.histoloji-note {
+  background: var(--histoloji-surface);
+  border-color: var(--histoloji-border);
+  color: var(--histoloji);
+  box-shadow: 0 0 20px var(--histoloji-glow), inset 0 0 20px rgba(167, 139, 250, 0.05);
+}
+
+.note-card.checked.biyofizik-note {
+  background: var(--biyofizik-surface);
+  border-color: var(--biyofizik-border);
+  color: var(--biyofizik);
+  box-shadow: 0 0 20px var(--biyofizik-glow), inset 0 0 20px rgba(251, 191, 36, 0.05);
+}
+
+.note-number {
+  position: relative;
+  z-index: 1;
+}
+
+.note-check {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 1;
+}
+
+.note-check svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== Bottom Navigation ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: var(--nav-height);
+  padding-bottom: var(--safe-area-bottom);
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  background: rgba(10, 10, 26, 0.85);
+  backdrop-filter: blur(30px) saturate(1.5);
+  -webkit-backdrop-filter: blur(30px) saturate(1.5);
+}
+
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  position: relative;
+  min-width: 56px;
+}
+
+.nav-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
+.nav-btn.active {
+  color: var(--text-primary);
+}
+
+.nav-btn.active::before {
+  width: 24px;
+}
+
+.nav-btn[data-target="stats"].active::before { background: var(--histoloji); }
+.nav-btn[data-target="anatomi"].active { color: var(--anatomi); }
+.nav-btn[data-target="anatomi"].active::before { background: var(--anatomi); }
+.nav-btn[data-target="fizyoloji"].active { color: var(--fizyoloji); }
+.nav-btn[data-target="fizyoloji"].active::before { background: var(--fizyoloji); }
+.nav-btn[data-target="histoloji"].active { color: var(--histoloji); }
+.nav-btn[data-target="histoloji"].active::before { background: var(--histoloji); }
+.nav-btn[data-target="biyofizik"].active { color: var(--biyofizik); }
+.nav-btn[data-target="biyofizik"].active::before { background: var(--biyofizik); }
+
+.nav-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* ===== Animations ===== */
+@keyframes check-pop {
+  0% { transform: scale(0.5); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.note-card.just-checked {
+  animation: check-pop 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Ripple effect */
+.note-card .ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple-anim 0.5s ease-out;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes ripple-anim {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 0;
+}
+
+/* ===== Media Queries ===== */
+@media (min-width: 480px) {
+  .notes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (min-width: 768px) {
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    border-left: 1px solid var(--glass-border);
+    border-right: 1px solid var(--glass-border);
+  }
+
+  .bottom-nav {
+    max-width: 480px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .notes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  }
+}
+
+/* ===== Confirm Dialog ===== */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.confirm-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.confirm-dialog {
+  background: rgba(20, 20, 45, 0.95);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.confirm-overlay.show .confirm-dialog {
+  transform: scale(1);
+}
+
+.confirm-dialog h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.confirm-dialog p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.confirm-actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirm-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border) !important;
+}
+
+.confirm-cancel:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.confirm-yes {
+  background: rgba(255, 80, 80, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 80, 80, 0.2) !important;
+}
+
+.confirm-yes:active {
+  background: rgba(255, 80, 80, 0.3);
+}
