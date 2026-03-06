@@ -10,6 +10,7 @@ const TOTAL_NOTES = Object.values(COURSES).reduce((s, c) => s + c.count, 0);
 
 // ===== State =====
 let state = loadState();
+let reviewState = loadReviewState();
 let currentPage = null;
 
 function loadState() {
@@ -31,6 +32,28 @@ function createEmptyState() {
 function saveState() {
   try {
     localStorage.setItem('mss-study-tracker', JSON.stringify(state));
+  } catch (e) { /* ignore */ }
+}
+
+function loadReviewState() {
+  try {
+    const saved = localStorage.getItem('mss-review-tracker');
+    if (saved) return JSON.parse(saved);
+  } catch (e) { /* ignore */ }
+  return createEmptyReviewState();
+}
+
+function createEmptyReviewState() {
+  const s = {};
+  for (const key of Object.keys(COURSES)) {
+    s[key] = new Array(COURSES[key].count).fill(0);
+  }
+  return s;
+}
+
+function saveReviewState() {
+  try {
+    localStorage.setItem('mss-review-tracker', JSON.stringify(reviewState));
   } catch (e) { /* ignore */ }
 }
 
@@ -192,6 +215,118 @@ function renderStatsGrid() {
   }
 }
 
+// ===== Review (Tekrar) System =====
+function renderTekrarPage() {
+  const container = document.getElementById('tekrarCourseSections');
+  if (!container) return;
+  container.innerHTML = '';
+
+  for (const [key, course] of Object.entries(COURSES)) {
+    const section = document.createElement('div');
+    section.className = 'tekrar-course-section';
+
+    const totalReviews = reviewState[key].reduce((a, b) => a + b, 0);
+    const reviewedCount = reviewState[key].filter(r => r > 0).length;
+
+    section.innerHTML = `
+      <div class="tekrar-course-header glass-panel course-${key}">
+        <div class="course-header-info">
+          <span class="course-icon">${course.icon}</span>
+          <div>
+            <h2>${course.name}</h2>
+            <p class="course-progress-text">${reviewedCount} / ${course.count} not tekrar edildi &middot; ${totalReviews} toplam</p>
+          </div>
+        </div>
+      </div>
+      <div class="review-grid" id="review-${key}-grid"></div>
+    `;
+    container.appendChild(section);
+
+    const grid = section.querySelector(`#review-${key}-grid`);
+    for (let i = 0; i < course.count; i++) {
+      const card = document.createElement('div');
+      const count = reviewState[key][i];
+      const intensity = Math.min(count, 5); // Max visual intensity at 5
+      card.className = `review-card ${key}-review intensity-${intensity}`;
+      card.dataset.course = key;
+      card.dataset.index = i;
+      card.innerHTML = `
+        <span class="review-number">${i + 1}</span>
+        <span class="review-count">${count > 0 ? count : ''}</span>
+      `;
+
+      // Tap to increment
+      card.addEventListener('click', () => incrementReview(key, i, card));
+
+      // Long press to decrement
+      let pressTimer;
+      card.addEventListener('touchstart', (e) => {
+        pressTimer = setTimeout(() => {
+          e.preventDefault();
+          decrementReview(key, i, card);
+        }, 500);
+      }, { passive: false });
+      card.addEventListener('touchend', () => clearTimeout(pressTimer));
+      card.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+      grid.appendChild(card);
+    }
+  }
+
+  updateTekrarSummary();
+}
+
+function incrementReview(course, index, card) {
+  reviewState[course][index]++;
+  saveReviewState();
+
+  const count = reviewState[course][index];
+  const intensity = Math.min(count, 5);
+  card.className = `review-card ${course}-review intensity-${intensity}`;
+  card.querySelector('.review-count').textContent = count;
+
+  // Pop animation
+  card.classList.add('just-reviewed');
+  createRipple(card, COURSES[course].color);
+  setTimeout(() => card.classList.remove('just-reviewed'), 350);
+
+  if (navigator.vibrate) navigator.vibrate(10);
+  updateTekrarSummary();
+}
+
+function decrementReview(course, index, card) {
+  if (reviewState[course][index] <= 0) return;
+  reviewState[course][index]--;
+  saveReviewState();
+
+  const count = reviewState[course][index];
+  const intensity = Math.min(count, 5);
+  card.className = `review-card ${course}-review intensity-${intensity}`;
+  card.querySelector('.review-count').textContent = count > 0 ? count : '';
+
+  if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
+  updateTekrarSummary();
+}
+
+function updateTekrarSummary() {
+  let totalReviews = 0;
+  for (const key of Object.keys(COURSES)) {
+    totalReviews += reviewState[key].reduce((a, b) => a + b, 0);
+  }
+  const summaryText = document.getElementById('tekrarSummaryText');
+  if (summaryText) summaryText.textContent = `Toplam ${totalReviews} tekrar yapıldı`;
+
+  // Update course section headers
+  for (const [key, course] of Object.entries(COURSES)) {
+    const courseTotal = reviewState[key].reduce((a, b) => a + b, 0);
+    const reviewedCount = reviewState[key].filter(r => r > 0).length;
+    const headerText = document.querySelector(`#review-${key}-grid`)?.parentElement?.querySelector('.course-progress-text');
+    if (headerText) {
+      headerText.textContent = `${reviewedCount} / ${course.count} not tekrar edildi \u00b7 ${courseTotal} toplam`;
+    }
+  }
+}
+
 // ===== Navigation =====
 function navigateTo(target) {
   if (currentPage === target) return;
@@ -220,6 +355,14 @@ function updateHeader(target) {
     headerIcon.textContent = '🧠';
     headerTitle.textContent = 'Merkezi Sinir Sistemi';
     headerSubtitle.textContent = 'Komite Ders Takip';
+  } else if (target === 'tekrar') {
+    headerIcon.textContent = '🔄';
+    headerTitle.textContent = 'Tekrar Takibi';
+    let total = 0;
+    for (const key of Object.keys(COURSES)) {
+      total += reviewState[key].reduce((a, b) => a + b, 0);
+    }
+    headerSubtitle.textContent = `Toplam ${total} tekrar`;
   } else {
     const course = COURSES[target];
     headerIcon.textContent = course.icon;
@@ -240,8 +383,11 @@ function setupReset() {
       () => {
         state = createEmptyState();
         saveState();
+        reviewState = createEmptyReviewState();
+        saveReviewState();
         renderNotesGrids();
         renderStatsGrid();
+        renderTekrarPage();
         updateAllProgress();
         updateHeader(currentPage);
       }
@@ -391,6 +537,7 @@ function init() {
   addSVGGradient();
   renderNotesGrids();
   renderStatsGrid();
+  renderTekrarPage();
   updateAllProgress();
   setupNavigation();
   setupReset();
