@@ -10,7 +10,7 @@ const TOTAL_NOTES = Object.values(COURSES).reduce((s, c) => s + c.count, 0);
 
 // ===== State =====
 let state = loadState();
-let currentPage = 'stats';
+let currentPage = null;
 
 function loadState() {
   try {
