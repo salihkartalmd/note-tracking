@@ -88,6 +88,7 @@ function renderNotesGrids() {
     grid.innerHTML = '';
     for (let i = 0; i < course.count; i++) {
       const card = document.createElement('div');
+      const reviews = reviewState[key][i];
       card.className = `note-card ${key}-note${state[key][i] ? ' checked' : ''}`;
       card.dataset.course = key;
       card.dataset.index = i;
@@ -98,8 +99,34 @@ function renderNotesGrids() {
             <polyline points="20 6 9 17 4 12"/>
           </svg>
         </span>
+        <span class="review-badge${reviews > 0 ? ' visible' : ''}">${reviews > 0 ? reviews : ''}</span>
       `;
+
+      // Tap handler
       card.addEventListener('click', () => toggleNote(key, i, card));
+
+      // Long press to uncheck a completed note
+      let pressTimer;
+      let longPressed = false;
+      card.addEventListener('touchstart', () => {
+        longPressed = false;
+        pressTimer = setTimeout(() => {
+          longPressed = true;
+          if (state[key][i]) {
+            state[key][i] = false;
+            saveState();
+            card.classList.remove('checked');
+            if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
+            updateAllProgress();
+          }
+        }, 500);
+      }, { passive: true });
+      card.addEventListener('touchend', (e) => {
+        clearTimeout(pressTimer);
+        if (longPressed) e.preventDefault();
+      });
+      card.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
       grid.appendChild(card);
     }
   }
@@ -107,22 +134,34 @@ function renderNotesGrids() {
 
 // ===== Toggle Note =====
 function toggleNote(course, index, card) {
-  state[course][index] = !state[course][index];
-  saveState();
-
-  // Toggle visual state
   if (state[course][index]) {
-    card.classList.add('checked', 'just-checked');
-    // Ripple effect
+    // Already checked: increment review count
+    reviewState[course][index]++;
+    saveReviewState();
+
+    const count = reviewState[course][index];
+    const badge = card.querySelector('.review-badge');
+    badge.textContent = count;
+    badge.classList.add('visible');
+
+    card.classList.add('just-checked');
     createRipple(card, COURSES[course].color);
     setTimeout(() => card.classList.remove('just-checked'), 350);
-  } else {
-    card.classList.remove('checked');
+
+    if (navigator.vibrate) navigator.vibrate(10);
+    updateAllProgress();
+    return;
   }
 
-  // Haptic feedback
-  if (navigator.vibrate) navigator.vibrate(10);
+  // Not checked: mark as completed
+  state[course][index] = true;
+  saveState();
 
+  card.classList.add('checked', 'just-checked');
+  createRipple(card, COURSES[course].color);
+  setTimeout(() => card.classList.remove('just-checked'), 350);
+
+  if (navigator.vibrate) navigator.vibrate(10);
   updateAllProgress();
 }
 
@@ -189,6 +228,14 @@ function updateAllProgress() {
     const offset = circumference - (totalPercent / 100) * circumference;
     progressCircle.style.strokeDashoffset = offset;
   }
+
+  // Total reviews
+  let totalReviewCount = 0;
+  for (const key of Object.keys(COURSES)) {
+    totalReviewCount += reviewState[key].reduce((a, b) => a + b, 0);
+  }
+  const totalReviewsEl = document.getElementById('totalReviews');
+  if (totalReviewsEl) totalReviewsEl.textContent = totalReviewCount;
 }
 
 // ===== Render Stats Grid =====
@@ -212,118 +259,6 @@ function renderStatsGrid() {
     // Navigate to course on click
     card.addEventListener('click', () => navigateTo(key));
     grid.appendChild(card);
-  }
-}
-
-// ===== Review (Tekrar) System =====
-function renderTekrarPage() {
-  const container = document.getElementById('tekrarCourseSections');
-  if (!container) return;
-  container.innerHTML = '';
-
-  for (const [key, course] of Object.entries(COURSES)) {
-    const section = document.createElement('div');
-    section.className = 'tekrar-course-section';
-
-    const totalReviews = reviewState[key].reduce((a, b) => a + b, 0);
-    const reviewedCount = reviewState[key].filter(r => r > 0).length;
-
-    section.innerHTML = `
-      <div class="tekrar-course-header glass-panel course-${key}">
-        <div class="course-header-info">
-          <span class="course-icon">${course.icon}</span>
-          <div>
-            <h2>${course.name}</h2>
-            <p class="course-progress-text">${reviewedCount} / ${course.count} not tekrar edildi &middot; ${totalReviews} toplam</p>
-          </div>
-        </div>
-      </div>
-      <div class="review-grid" id="review-${key}-grid"></div>
-    `;
-    container.appendChild(section);
-
-    const grid = section.querySelector(`#review-${key}-grid`);
-    for (let i = 0; i < course.count; i++) {
-      const card = document.createElement('div');
-      const count = reviewState[key][i];
-      const intensity = Math.min(count, 5); // Max visual intensity at 5
-      card.className = `review-card ${key}-review intensity-${intensity}`;
-      card.dataset.course = key;
-      card.dataset.index = i;
-      card.innerHTML = `
-        <span class="review-number">${i + 1}</span>
-        <span class="review-count">${count > 0 ? count : ''}</span>
-      `;
-
-      // Tap to increment
-      card.addEventListener('click', () => incrementReview(key, i, card));
-
-      // Long press to decrement
-      let pressTimer;
-      card.addEventListener('touchstart', (e) => {
-        pressTimer = setTimeout(() => {
-          e.preventDefault();
-          decrementReview(key, i, card);
-        }, 500);
-      }, { passive: false });
-      card.addEventListener('touchend', () => clearTimeout(pressTimer));
-      card.addEventListener('touchmove', () => clearTimeout(pressTimer));
-
-      grid.appendChild(card);
-    }
-  }
-
-  updateTekrarSummary();
-}
-
-function incrementReview(course, index, card) {
-  reviewState[course][index]++;
-  saveReviewState();
-
-  const count = reviewState[course][index];
-  const intensity = Math.min(count, 5);
-  card.className = `review-card ${course}-review intensity-${intensity}`;
-  card.querySelector('.review-count').textContent = count;
-
-  // Pop animation
-  card.classList.add('just-reviewed');
-  createRipple(card, COURSES[course].color);
-  setTimeout(() => card.classList.remove('just-reviewed'), 350);
-
-  if (navigator.vibrate) navigator.vibrate(10);
-  updateTekrarSummary();
-}
-
-function decrementReview(course, index, card) {
-  if (reviewState[course][index] <= 0) return;
-  reviewState[course][index]--;
-  saveReviewState();
-
-  const count = reviewState[course][index];
-  const intensity = Math.min(count, 5);
-  card.className = `review-card ${course}-review intensity-${intensity}`;
-  card.querySelector('.review-count').textContent = count > 0 ? count : '';
-
-  if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
-  updateTekrarSummary();
-}
-
-function updateTekrarSummary() {
-  let totalReviews = 0;
-  for (const key of Object.keys(COURSES)) {
-    totalReviews += reviewState[key].reduce((a, b) => a + b, 0);
-  }
-  const summaryText = document.getElementById('tekrarSummaryText');
-  if (summaryText) summaryText.textContent = `Toplam ${totalReviews} tekrar yapıldı`;
-
-  // Update course section headers
-  for (const [key, course] of Object.entries(COURSES)) {
-    const courseTotal = reviewState[key].reduce((a, b) => a + b, 0);
-    const reviewedCount = reviewState[key].filter(r => r > 0).length;
-    const headerText = document.querySelector(`#review-${key}-grid`)?.parentElement?.querySelector('.course-progress-text');
-    if (headerText) {
-      headerText.textContent = `${reviewedCount} / ${course.count} not tekrar edildi \u00b7 ${courseTotal} toplam`;
-    }
   }
 }
 
@@ -355,14 +290,6 @@ function updateHeader(target) {
     headerIcon.textContent = '🧠';
     headerTitle.textContent = 'Merkezi Sinir Sistemi';
     headerSubtitle.textContent = 'Komite Ders Takip';
-  } else if (target === 'tekrar') {
-    headerIcon.textContent = '🔄';
-    headerTitle.textContent = 'Tekrar Takibi';
-    let total = 0;
-    for (const key of Object.keys(COURSES)) {
-      total += reviewState[key].reduce((a, b) => a + b, 0);
-    }
-    headerSubtitle.textContent = `Toplam ${total} tekrar`;
   } else {
     const course = COURSES[target];
     headerIcon.textContent = course.icon;
@@ -387,7 +314,6 @@ function setupReset() {
         saveReviewState();
         renderNotesGrids();
         renderStatsGrid();
-        renderTekrarPage();
         updateAllProgress();
         updateHeader(currentPage);
       }
@@ -537,7 +463,6 @@ function init() {
   addSVGGradient();
   renderNotesGrids();
   renderStatsGrid();
-  renderTekrarPage();
   updateAllProgress();
   setupNavigation();
   setupReset();

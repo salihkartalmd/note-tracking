@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mss-tracker-v5';
+const CACHE_NAME = 'mss-tracker-v6';
 const ASSETS = [
   './index.html',
   './styles.css',
