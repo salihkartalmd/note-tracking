@@ -105,20 +105,32 @@ function renderNotesGrids() {
       // Tap handler
       card.addEventListener('click', () => toggleNote(key, i, card));
 
-      // Long press to uncheck a completed note
+      // Long press: decrement review → then uncheck
       let pressTimer;
       let longPressed = false;
       card.addEventListener('touchstart', () => {
         longPressed = false;
         pressTimer = setTimeout(() => {
           longPressed = true;
-          if (state[key][i]) {
+          if (!state[key][i]) return;
+
+          const badge = card.querySelector('.review-badge');
+          if (reviewState[key][i] > 0) {
+            // Decrement review count
+            reviewState[key][i]--;
+            saveReviewState();
+            const count = reviewState[key][i];
+            badge.textContent = count > 0 ? count : '';
+            if (count === 0) badge.classList.remove('visible');
+            if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
+          } else {
+            // No reviews left: uncheck the note
             state[key][i] = false;
             saveState();
             card.classList.remove('checked');
             if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
-            updateAllProgress();
           }
+          updateAllProgress();
         }, 500);
       }, { passive: true });
       card.addEventListener('touchend', (e) => {
