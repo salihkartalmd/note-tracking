@@ -1,6 +1,5 @@
-const CACHE_NAME = 'mss-tracker-v3';
+const CACHE_NAME = 'mss-tracker-v4';
 const ASSETS = [
-  './',
   './index.html',
   './styles.css',
   './app.js',
@@ -10,12 +9,18 @@ const ASSETS = [
   './icons/icon-512.png'
 ];
 
-// Install - cache assets
+// Install - cache assets one by one (don't fail all if one fails)
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(ASSETS))
-      .catch((err) => console.warn('SW cache addAll failed:', err))
+    caches.open(CACHE_NAME).then((cache) => {
+      return Promise.all(
+        ASSETS.map((url) =>
+          cache.add(url).catch((err) => {
+            console.warn('Failed to cache:', url, err);
+          })
+        )
+      );
+    })
   );
   self.skipWaiting();
 });
@@ -32,45 +37,26 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch - network first for navigation, cache first for assets
+// Fetch handler
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
 
-  // Skip chrome-extension and other non-http(s) requests
-  if (!event.request.url.startsWith('http')) return;
+  // Only handle same-origin GET requests
+  if (event.request.method !== 'GET') return;
+  if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    (async () => {
-      // For navigation requests, try network first
-      if (event.request.mode === 'navigate') {
-        try {
-          const response = await fetch(event.request);
-          if (response.ok) {
-            const cache = await caches.open(CACHE_NAME);
-            cache.put(event.request, response.clone());
-            return response;
-          }
-        } catch (e) { /* network failed, fall through to cache */ }
-        const cached = await caches.match(event.request);
-        return cached || caches.match('./index.html');
-      }
-
-      // For other requests, try cache first
-      const cached = await caches.match(event.request);
-      if (cached) return cached;
-
-      try {
-        const response = await fetch(event.request);
-        // Only cache same-origin successful responses
-        if (response.ok && event.request.url.startsWith(self.location.origin)) {
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(event.request, response.clone());
+    caches.match(event.request).then((cached) => {
+      // Return cached version, but also fetch fresh copy in background
+      const fetchPromise = fetch(event.request).then((response) => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return response;
-      } catch (e) {
-        // Return a basic offline response for failed requests
-        return new Response('Offline', { status: 503, statusText: 'Offline' });
-      }
-    })()
+      }).catch(() => cached);
+
+      return cached || fetchPromise;
+    })
   );
 });

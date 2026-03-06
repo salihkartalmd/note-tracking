@@ -378,7 +378,17 @@ function setupNavigation() {
 // ===== Service Worker Registration =====
 function registerSW() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    // Unregister any broken old service workers first, then register fresh
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      const unregisterPromises = registrations.map((r) => r.unregister());
+      return Promise.all(unregisterPromises);
+    }).then(() => {
+      return navigator.serviceWorker.register('./sw.js', { scope: './' });
+    }).then((reg) => {
+      console.log('SW registered:', reg.scope);
+    }).catch((err) => {
+      console.warn('SW registration failed:', err);
+    });
   }
 }
 
